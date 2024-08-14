@@ -33,7 +33,7 @@ namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs"
-    variable version 2.1
+    variable version 2.2
     variable min_de1app_version {1.43.0}
 
     proc main {} {
@@ -236,7 +236,7 @@ namespace eval ::plugins::${plugin_name} {
         if {$::gfc_orig_flow == ""} {
             ::plugins::Graphical_Flow_Calibrator::load_GFC_graph $::gfc_history_file 0
         }
-        if {$::gfc_flow_cal_showing >= 1.65} {
+        if {$::gfc_flow_cal_showing >= 2.0} {
             popup [translate "maximum setting reached"]
             return
         }
