@@ -33,7 +33,7 @@ namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs"
-    variable version 2.2
+    variable version 2.3
     variable min_de1app_version {1.43.0}
 
     proc main {} {
@@ -334,7 +334,34 @@ proc ::preset_page_flow_cal_label {} {
 dui add dbutton settings_1 456 220 \
     -bwidth 640 -bheight 90 \
     -labelvariable {[preset_page_flow_cal_label]} -label_font [dui font get "notosansuiregular" 14] -label_fill #7f879a -label_pos {0.5 0.5} \
-    -command {page_show GFC}
+    -command {page_show GFC} -longpress_cmd {show_GFC_profile_setting}
+
+proc ::show_GFC_profile_setting {} {
+    dui item config settings_1 GFC_profile_setting -state normal
+}
+
+proc ::hide_GFC_profile_setting {} {
+    dui item config settings_1 GFC_profile_setting -initial_state hidden -state hidden
+}
+
+dui add shape rect settings_1 1080 270 1300 1400 -width 1 -outline #fff -fill #fff -tags {GFC_profile_setting_bg GFC_profile_setting} -initial_state hidden
+dui add dbutton settings_1 0 0 -bwidth 2560 -bheight 1600 -tags {GFC_profile_setting_bg_button GFC_profile_setting} -initial_state hidden \
+    -command {hide_GFC_profile_setting}
+
+dui add variable settings_1 1200 490 -font [dui font get "notosansuiregular" 16] -fill #7f879a -anchor center -tags {GFC_profile_down_variable GFC_profile_setting} -initial_state hidden -textvariable {$::gfc_flow_cal_showing}
+dui add dbutton settings_1 1136 320 -bwidth 132 -bheight 120 -initial_state hidden \
+    -shape round -fill #c0c4e1 -radius 60 -tags {GFC_profile_up_button GFC_profile_setting} \
+    -label \Uf106 -label_font [dui font get "Font Awesome 5 Pro-Regular-400" 20] -label_fill #fff -label_pos {0.5 0.5} \
+    -command {::plugins::Graphical_Flow_Calibrator::flow_cal_up}
+dui add dbutton settings_1 1136 540 -bwidth 132 -bheight 120 -initial_state hidden \
+    -shape round -fill #c0c4e1 -radius 60 -tags {GFC_profile_down_button GFC_profile_setting} \
+    -label \Uf107 -label_font [dui font get "Font Awesome 5 Pro-Regular-400" 20] -label_fill #fff -label_pos {0.5 0.5} \
+    -command {::plugins::Graphical_Flow_Calibrator::flow_cal_down}
+
+dui add dbutton settings_1 1136 780 -bwidth 132 -bheight 120 -initial_state hidden \
+    -shape round -fill #c0c4e1 -radius 60 -tags {GFC_profile_save GFC_profile_setting} \
+    -label \uf00c -label_font [dui font get "Font Awesome 5 Pro-Regular-400" 20] -label_fill #fff -label_pos {0.5 0.5} \
+    -command {::plugins::Graphical_Flow_Calibrator::save_profile_flow_cal}
 
 rename ::page_show ::page_show_orig
 proc ::page_show {page_to_show args} {
