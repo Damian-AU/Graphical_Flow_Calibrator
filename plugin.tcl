@@ -33,8 +33,8 @@ namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs"
-    variable version 2.3
-    variable min_de1app_version {1.43.0}
+    variable version 2.4
+    variable min_de1app_version {1.42.0}
 
     proc main {} {
         plugins gui Graphical_Flow_Calibrator "GFC"
@@ -399,4 +399,24 @@ proc ::delete_selected_profile {} {
 	}
     delete_selected_profile_orig
     select_profile $::settings(profile)
+}
+
+if {[ package vcompare [package version de1app] 1.42.12.0 ] < 0} {
+    proc ::popup {msg} {
+
+        # complaints that some android themes use a black background theme, so these toast messages were not visible.  Reverting to using native toast messages based on the OS themes.
+        borg toast $msg 1
+        return
+
+        if {$::app::build_timestamp > 1714054164} {
+            # newer Androwish support HTML toasts, force them to be black to work around some tablets having incorrect toast colors
+            if {[catch {
+                borg toast "<b><font color='#000000'>$msg" 1 1
+            } err] != 0} {
+                borg toast $msg 1
+            }
+        } else {
+            borg toast $msg 1
+        }
+    }
 }
