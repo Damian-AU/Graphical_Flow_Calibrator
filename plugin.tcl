@@ -33,7 +33,7 @@ namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs"
-    variable version 2.4
+    variable version 2.41
     variable min_de1app_version {1.42.0}
 
     proc main {} {
@@ -401,7 +401,7 @@ proc ::delete_selected_profile {} {
     select_profile $::settings(profile)
 }
 
-if {[ package vcompare [package version de1app] 1.42.12.0 ] < 0} {
+if {[ package vcompare [package version de1app] 1.43.12.0 ] < 0} {
     proc ::popup {msg} {
 
         # complaints that some android themes use a black background theme, so these toast messages were not visible.  Reverting to using native toast messages based on the OS themes.
