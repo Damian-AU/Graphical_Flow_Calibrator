@@ -32,9 +32,9 @@ if {$::settings(skin) == "DSx2"} {
 namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
-    variable description "Adjust flow calibration using historic shot graphs"
-    variable version 2.41
-    variable min_de1app_version {1.42.0}
+    variable description "Adjust flow calibration using historic shot graphs and per profile calibration"
+    variable version 2.5
+    variable min_de1app_version {1.43.12}
 
     proc main {} {
         plugins gui Graphical_Flow_Calibrator "GFC"
@@ -290,6 +290,25 @@ namespace eval ::plugins::${plugin_name} {
         set_calibration_flow_multiplier $::settings(calibration_flow_multiplier)
     }
 
+    proc save_profile_flow_cal_s1 {} {
+        set ::settings(calibration_flow_multiplier) $::gfc_flow_cal_showing
+        set ::gfc_espresso_profile_cal_value $::gfc_flow_cal_showing
+        if {$::settings(profile_title) in $::settings(calibration_flow_multiplier_profiles) == 0 } {
+            if {$::settings(calibration_flow_multiplier_default) != $::gfc_espresso_profile_cal_value} {
+                lappend ::settings(calibration_flow_multiplier_profiles) {*}[list $::settings(profile_title) $::settings(calibration_flow_multiplier)]
+            }
+        } else {
+            set idx [lsearch $::settings(calibration_flow_multiplier_profiles) $::settings(profile_title)]
+            if {$::settings(calibration_flow_multiplier_default) != $::gfc_espresso_profile_cal_value} {
+                set ::settings(calibration_flow_multiplier_profiles) [lreplace $::settings(calibration_flow_multiplier_profiles) $idx [expr {$idx + 1}] $::settings(profile_title) $::settings(calibration_flow_multiplier) ]
+            } else {
+                set ::settings(calibration_flow_multiplier_profiles) [lreplace $::settings(calibration_flow_multiplier_profiles) $idx [expr {$idx + 1}]]
+            }
+        }
+        save_settings
+        set_calibration_flow_multiplier $::settings(calibration_flow_multiplier)
+    }
+
     proc disable {button} {
         dui item config GFC $button* -state disabled
     }
@@ -361,7 +380,7 @@ dui add dbutton settings_1 1136 540 -bwidth 132 -bheight 120 -initial_state hidd
 dui add dbutton settings_1 1136 780 -bwidth 132 -bheight 120 -initial_state hidden \
     -shape round -fill #c0c4e1 -radius 60 -tags {GFC_profile_save GFC_profile_setting} \
     -label \uf00c -label_font [dui font get "Font Awesome 5 Pro-Regular-400" 20] -label_fill #fff -label_pos {0.5 0.5} \
-    -command {::plugins::Graphical_Flow_Calibrator::save_profile_flow_cal}
+    -command {::plugins::Graphical_Flow_Calibrator::save_profile_flow_cal_s1}
 
 rename ::page_show ::page_show_orig
 proc ::page_show {page_to_show args} {
@@ -399,24 +418,4 @@ proc ::delete_selected_profile {} {
 	}
     delete_selected_profile_orig
     select_profile $::settings(profile)
-}
-
-if {[ package vcompare [package version de1app] 1.43.12.0 ] < 0} {
-    proc ::popup {msg} {
-
-        # complaints that some android themes use a black background theme, so these toast messages were not visible.  Reverting to using native toast messages based on the OS themes.
-        borg toast $msg 1
-        return
-
-        if {$::app::build_timestamp > 1714054164} {
-            # newer Androwish support HTML toasts, force them to be black to work around some tablets having incorrect toast colors
-            if {[catch {
-                borg toast "<b><font color='#000000'>$msg" 1 1
-            } err] != 0} {
-                borg toast $msg 1
-            }
-        } else {
-            borg toast $msg 1
-        }
-    }
 }
