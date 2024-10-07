@@ -33,7 +33,7 @@ namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs and per profile calibration"
-    variable version 2.5
+    variable version 2.6
     variable min_de1app_version {1.43.12}
 
     proc main {} {
@@ -54,7 +54,7 @@ namespace eval ::plugins::${plugin_name} {
     set font "notosansuiregular"
     set font_bold "notosansuibold"
 
-    dui add dbutton "calibrate" 1450 1460 -style insight_ok -anchor nw -command {page_show GFC} -label_width 400 -label_font [dui font get $font 14] -label [subst {[translate "go to the"]\r[translate "Graphical Flow Calibrator"]}]
+    dui add dbutton "calibrate" 1450 1460 -style insight_ok -anchor nw -command {page_show GFC} -label_width 400 -label_font [dui font get $font 14] -label [translate "Graphical Flow Calibrator"]
     dui add canvas_item rect $page_name 0 0 2560 1600 -fill $background_colour -width 0
     dui add dtext $page_name 1280 100 -text [translate "Graphical Flow Calibrator (GFC)"] -font [dui font get $font_bold 28] -fill $text_colour -anchor "center" -justify "center"
     dui add variable $page_name 2510 1560 -font [dui font get $font 12] -fill $text_colour -anchor e -justify right -textvariable {Version $::plugins::Graphical_Flow_Calibrator::version  by $::plugins::Graphical_Flow_Calibrator::author}
