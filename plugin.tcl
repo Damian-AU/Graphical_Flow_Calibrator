@@ -33,7 +33,7 @@ namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs and per profile calibration"
-    variable version 2.6
+    variable version 2.7
     variable min_de1app_version {1.43.12}
 
     proc main {} {
@@ -321,8 +321,9 @@ namespace eval ::plugins::${plugin_name} {
         ::plugins::Graphical_Flow_Calibrator::clear_GFC_graph
         if {$::settings(skin) == "DSx"} {restore_DSx_live_graph}
         if {$::settings(skin) == "DSx2"} {restore_live_graphs}
-        set_next_page off off
-        dui page load off
+        #set_next_page off off
+        #dui page load off
+        dui page load $::gfc_start_page
         set ::gfc_history_file 0
     }
 }
@@ -346,14 +347,30 @@ proc ::preset_page_flow_cal_label {} {
             set t [translate "custom"]
         }
         set s { }
-        return $l:$s$c$s$s$t
+        #return $c$s$s$t
+        return $l$s$s$c$s$s$t
     }
 }
 
-dui add dbutton settings_1 456 220 \
-    -bwidth 640 -bheight 90 \
-    -labelvariable {[preset_page_flow_cal_label]} -label_font [dui font get "notosansuiregular" 14] -label_fill #7f879a -label_pos {0.5 0.5} \
-    -command {page_show GFC} -longpress_cmd {show_GFC_profile_setting}
+
+#dui add variable settings_1 50 1350 -font [dui font get "notosansuiregular" 16] -fill #7f879a -anchor w -textvariable {[preset_page_flow_cal_label]}
+#dui add dbutton settings_1 10 1300 \
+#    -bwidth 800 -bheight 90 \
+#    -labelvariable {} -label_font [dui font get "notosansuiregular" 14] -label_fill #7f879a -label_pos {0.5 0.5} \
+#    -command {page_show GFC} -longpress_cmd {show_GFC_profile_setting}
+
+
+$::preview_graph_pressure configure -height [rescale_y_skin 430]
+$::preview_graph_flow configure -height [rescale_y_skin 430]
+$::preview_graph_advanced configure -height [rescale_y_skin 430]
+
+dui add dtext settings_1 1360 750 -font [dui font get "notosansuibold" 16] -text [translate "Flow calibration"] -fill #7f879a -anchor w
+dui add variable settings_1 1700 750 -font [dui font get "notosansuiregular" 16] -fill #4e85f4 -anchor w -textvariable {[preset_page_flow_cal_label]}
+
+dui add dbutton settings_1 1320 710 \
+    -bwidth 1000 -bheight 90 \
+    -labelvariable {} -label_font [dui font get "notosansuiregular" 16] -label_fill #7f879a -label_pos {0.5 0.5} \
+-command {page_show GFC} -longpress_cmd {show_GFC_profile_setting}
 
 proc ::show_GFC_profile_setting {} {
     dui item config settings_1 GFC_profile_setting -state normal
@@ -382,8 +399,13 @@ dui add dbutton settings_1 1136 780 -bwidth 132 -bheight 120 -initial_state hidd
     -label \uf00c -label_font [dui font get "Font Awesome 5 Pro-Regular-400" 20] -label_fill #fff -label_pos {0.5 0.5} \
     -command {::plugins::Graphical_Flow_Calibrator::save_profile_flow_cal_s1}
 
+set ::gfc_start_page off
+
 rename ::page_show ::page_show_orig
 proc ::page_show {page_to_show args} {
+	if {$page_to_show == "GFC"} {
+	    set ::gfc_start_page [dui page current]
+	}
 	page_show_orig $page_to_show $args
 	if {$page_to_show == "GFC"} {
 		::plugins::Graphical_Flow_Calibrator::load_GFC_graph $::gfc_history_file 0
