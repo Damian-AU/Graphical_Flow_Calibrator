@@ -33,7 +33,7 @@ namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs and per profile calibration"
-    variable version 2.7
+    variable version 2.8
     variable min_de1app_version {1.43.12}
 
     proc main {} {
@@ -339,7 +339,7 @@ proc ::preset_page_flow_cal_label {} {
     if {[ifexists ::profiles_hide_mode] == 1} {
         return ""
     } else {
-        set l [translate "Flow calibration"]
+        set l [translate "Calibration"]
         set c $::settings(calibration_flow_multiplier)
         if {$::settings(calibration_flow_multiplier) == $::settings(calibration_flow_multiplier_default)} {
             set t [translate "default"]
@@ -347,25 +347,16 @@ proc ::preset_page_flow_cal_label {} {
             set t [translate "custom"]
         }
         set s { }
-        #return $c$s$s$t
         return $l$s$s$c$s$s$t
     }
 }
-
-
-#dui add variable settings_1 50 1350 -font [dui font get "notosansuiregular" 16] -fill #7f879a -anchor w -textvariable {[preset_page_flow_cal_label]}
-#dui add dbutton settings_1 10 1300 \
-#    -bwidth 800 -bheight 90 \
-#    -labelvariable {} -label_font [dui font get "notosansuiregular" 14] -label_fill #7f879a -label_pos {0.5 0.5} \
-#    -command {page_show GFC} -longpress_cmd {show_GFC_profile_setting}
-
 
 $::preview_graph_pressure configure -height [rescale_y_skin 430]
 $::preview_graph_flow configure -height [rescale_y_skin 430]
 $::preview_graph_advanced configure -height [rescale_y_skin 430]
 
-dui add dtext settings_1 1360 750 -font [dui font get "notosansuibold" 16] -text [translate "Flow calibration"] -fill #7f879a -anchor w
-dui add variable settings_1 1700 750 -font [dui font get "notosansuiregular" 16] -fill #4e85f4 -anchor w -textvariable {[preset_page_flow_cal_label]}
+#dui add dtext settings_1 1360 750 -font [dui font get "notosansuibold" 16] -text [translate "Flow calibration"] -fill #7f879a -anchor w
+dui add variable settings_1 1360 750 -font [dui font get "notosansuiregular" 16] -fill #4e85f4 -anchor w -textvariable {[preset_page_flow_cal_label]}
 
 dui add dbutton settings_1 1320 710 \
     -bwidth 1000 -bheight 90 \
