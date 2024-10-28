@@ -25,15 +25,18 @@ set ::gfc_history_file 0
 set ::gfc_orig_flow ""
 set ::gfc_espresso_flow ""
 if {$::settings(skin) == "DSx2"} {
-    set ::gfc_orig_flow $::skin_graphs(live_graph_espresso_flow)
-    set ::gfc_espresso_flow $::skin_graphs(live_graph_espresso_flow)
+    if {[info exist ::skin_graphs(live_graph_espresso_flow)]} {
+        set ::gfc_orig_flow $::skin_graphs(live_graph_espresso_flow)
+        set ::gfc_espresso_flow $::skin_graphs(live_graph_espresso_flow)
+    }
 }
+set ::gfc_start_page extensions
 
 namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs and per profile calibration"
-    variable version 2.8
+    variable version 2.9
     variable min_de1app_version {1.43.12}
 
     proc main {} {
@@ -232,6 +235,14 @@ namespace eval ::plugins::${plugin_name} {
         return "$s$s$s$date$s$c$b$pm"
     }
 
+    proc update_gfc_presets_page_ui {} {
+        if {$::gfc_flow_cal_showing != $::settings(calibration_flow_multiplier)} {
+            dui item config settings_1 GFC_profile_setting -initial_state normal -state normal
+        } else {
+            dui item config settings_1 GFC_profile_setting -initial_state hidden -state hidden
+        }
+    }
+
     proc flow_cal_up {} {
         if {$::gfc_orig_flow == ""} {
             ::plugins::Graphical_Flow_Calibrator::load_GFC_graph $::gfc_history_file 0
@@ -245,6 +256,7 @@ namespace eval ::plugins::${plugin_name} {
         foreach flow $::gfc_espresso_flow {
             espresso_flow append [expr $::gfc_flow_cal_showing * $flow / $::gfc_flow_cal_history]
         }
+        ::plugins::Graphical_Flow_Calibrator::update_gfc_presets_page_ui
     }
 
     proc flow_cal_down {} {
@@ -260,6 +272,7 @@ namespace eval ::plugins::${plugin_name} {
         foreach flow $::gfc_espresso_flow {
             espresso_flow append [expr $::gfc_flow_cal_showing * $flow / $::gfc_flow_cal_history]
         }
+        ::plugins::Graphical_Flow_Calibrator::update_gfc_presets_page_ui
     }
 
     proc save_default_flow_cal {} {
@@ -335,33 +348,34 @@ proc ::flow_calibration_multiplier_type {} {
         return "custom"
     }
 }
+
 proc ::preset_page_flow_cal_label {} {
     if {[ifexists ::profiles_hide_mode] == 1} {
         return ""
     } else {
         set l [translate "Calibration"]
         set c $::settings(calibration_flow_multiplier)
-        if {$::settings(calibration_flow_multiplier) == $::settings(calibration_flow_multiplier_default)} {
-            set t [translate "default"]
+        if {$::gfc_flow_cal_showing == $::settings(calibration_flow_multiplier_default)} {
+            set t ([translate "default"])
         } else {
-            set t [translate "custom"]
+            set t ""
         }
         set s { }
-        return $l$s$s$c$s$s$t
+        #return $l$s$s$c$s$s$t
+        #return $l:$s$s$c$s$s$t
+        return $t
     }
 }
 
-$::preview_graph_pressure configure -height [rescale_y_skin 430]
-$::preview_graph_flow configure -height [rescale_y_skin 430]
-$::preview_graph_advanced configure -height [rescale_y_skin 430]
+$::preview_graph_pressure configure -height [rescale_y_skin 420]
+$::preview_graph_flow configure -height [rescale_y_skin 420]
+$::preview_graph_advanced configure -height [rescale_y_skin 420]
 
-#dui add dtext settings_1 1360 750 -font [dui font get "notosansuibold" 16] -text [translate "Flow calibration"] -fill #7f879a -anchor w
-dui add variable settings_1 1360 750 -font [dui font get "notosansuiregular" 16] -fill #4e85f4 -anchor w -textvariable {[preset_page_flow_cal_label]}
-
+dui add dtext settings_1 1360 746 -font [dui font get "notosansuibold" 16] -text [translate "Calibration"]: -fill #7f879a -anchor w
 dui add dbutton settings_1 1320 710 \
     -bwidth 1000 -bheight 90 \
     -labelvariable {} -label_font [dui font get "notosansuiregular" 16] -label_fill #7f879a -label_pos {0.5 0.5} \
--command {page_show GFC} -longpress_cmd {show_GFC_profile_setting}
+-command {show_GFC_profile_setting} -longpress_cmd {page_show GFC}
 
 proc ::show_GFC_profile_setting {} {
     dui item config settings_1 GFC_profile_setting -state normal
@@ -371,26 +385,26 @@ proc ::hide_GFC_profile_setting {} {
     dui item config settings_1 GFC_profile_setting -initial_state hidden -state hidden
 }
 
-dui add shape rect settings_1 1080 270 1300 1400 -width 1 -outline #fff -fill #fff -tags {GFC_profile_setting_bg GFC_profile_setting} -initial_state hidden
-dui add dbutton settings_1 0 0 -bwidth 2560 -bheight 1600 -tags {GFC_profile_setting_bg_button GFC_profile_setting} -initial_state hidden \
-    -command {hide_GFC_profile_setting}
-
-dui add variable settings_1 1200 490 -font [dui font get "notosansuiregular" 16] -fill #7f879a -anchor center -tags {GFC_profile_down_variable GFC_profile_setting} -initial_state hidden -textvariable {$::gfc_flow_cal_showing}
-dui add dbutton settings_1 1136 320 -bwidth 132 -bheight 120 -initial_state hidden \
-    -shape round -fill #c0c4e1 -radius 60 -tags {GFC_profile_up_button GFC_profile_setting} \
-    -label \Uf106 -label_font [dui font get "Font Awesome 5 Pro-Regular-400" 20] -label_fill #fff -label_pos {0.5 0.5} \
-    -command {::plugins::Graphical_Flow_Calibrator::flow_cal_up}
-dui add dbutton settings_1 1136 540 -bwidth 132 -bheight 120 -initial_state hidden \
-    -shape round -fill #c0c4e1 -radius 60 -tags {GFC_profile_down_button GFC_profile_setting} \
-    -label \Uf107 -label_font [dui font get "Font Awesome 5 Pro-Regular-400" 20] -label_fill #fff -label_pos {0.5 0.5} \
+dui add variable settings_1 1740 774 -font [dui font get "notosansuiregular" 10] -fill #7f879a -anchor c -textvariable {[preset_page_flow_cal_label]}
+dui add variable settings_1 1740 746 -font [dui font get "notosansuiregular" 16] -fill #4e85f4 -anchor center -textvariable {$::gfc_flow_cal_showing}
+dui add dbutton settings_1 1590 686 -bwidth 120 -bheight 120 \
+    -label - -label_font [dui font get "Font Awesome 5 Pro-Light-300" 24] -label_fill #7f879a -label_pos {0.5 0.5} \
     -command {::plugins::Graphical_Flow_Calibrator::flow_cal_down}
-
-dui add dbutton settings_1 1136 780 -bwidth 132 -bheight 120 -initial_state hidden \
-    -shape round -fill #c0c4e1 -radius 60 -tags {GFC_profile_save GFC_profile_setting} \
-    -label \uf00c -label_font [dui font get "Font Awesome 5 Pro-Regular-400" 20] -label_fill #fff -label_pos {0.5 0.5} \
-    -command {::plugins::Graphical_Flow_Calibrator::save_profile_flow_cal_s1}
-
-set ::gfc_start_page off
+dui add dbutton settings_1 1770 686 -bwidth 120 -bheight 120 \
+    -label + -label_font [dui font get "Font Awesome 5 Pro-Light-300" 20] -label_fill #7f879a -label_pos {0.5 0.5} \
+    -command {::plugins::Graphical_Flow_Calibrator::flow_cal_up}
+dui add dbutton settings_1 1980 686 -bwidth 100 -bheight 120 \
+    -tags {GFC_profile_cancel GFC_profile_setting} -initial_state hidden \
+    -label \uf00c -label_font [dui font get "Font Awesome 5 Pro-Regular-400" 20] -label_fill #0CA581 -label_pos {0.5 0.5} \
+    -command {::plugins::Graphical_Flow_Calibrator::save_profile_flow_cal_s1; hide_GFC_profile_setting}
+dui add dbutton settings_1 1880 686 -bwidth 100 -bheight 120 \
+    -tags {GFC_profile_save GFC_profile_setting} -initial_state hidden \
+    -label \Uf00d -label_font [dui font get "Font Awesome 5 Pro-Regular-400" 20] -label_fill #DA515E -label_pos {0.5 0.5} \
+    -command {set ::gfc_flow_cal_showing $::settings(calibration_flow_multiplier); hide_GFC_profile_setting}
+dui add dbutton settings_1 2160 720 -bwidth 120 -bheight 60 \
+    -shape round -fill #c0c4e1 -radius 40 \
+    -label "GFC" -label_font [dui font get "notosansuiregular" 14] -label_fill #fff -label_pos {0.5 0.5} \
+    -command {page_show GFC}
 
 rename ::page_show ::page_show_orig
 proc ::page_show {page_to_show args} {
@@ -418,6 +432,8 @@ proc ::select_profile {profile} {
             popup [translate "Flow Calibration set to: "]$::settings(calibration_flow_multiplier)
         }
     }
+    set ::gfc_flow_cal_showing $::settings(calibration_flow_multiplier)
+    ::plugins::Graphical_Flow_Calibrator::update_gfc_presets_page_ui
 }
 
 rename ::delete_selected_profile ::delete_selected_profile_orig
@@ -431,4 +447,6 @@ proc ::delete_selected_profile {} {
 	}
     delete_selected_profile_orig
     select_profile $::settings(profile)
+    set ::gfc_flow_cal_showing $::settings(calibration_flow_multiplier)
+    ::plugins::Graphical_Flow_Calibrator::update_gfc_presets_page_ui
 }
