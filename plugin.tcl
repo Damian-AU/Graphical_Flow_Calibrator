@@ -36,7 +36,7 @@ namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs and per profile calibration"
-    variable version 2.9
+    variable version 3.0
     variable min_de1app_version {1.43.12}
 
     proc main {} {
@@ -112,6 +112,12 @@ namespace eval ::plugins::${plugin_name} {
         -shape round -fill $foreground_colour -radius 60\
         -label [translate "Exit"] -label_font [dui font get $font_bold 18] -label_fill $button_label_colour -label_pos {0.5 0.5} \
         -command {::plugins::Graphical_Flow_Calibrator::exit}
+
+    dui add dbutton $page_name 80 1440 \
+        -bwidth 220 -bheight 120 \
+        -shape round -fill $foreground_colour -radius 60\
+        -label [translate "Reset"] -label_font [dui font get $font_bold 18] -label_fill $button_label_colour -label_pos {0.5 0.5} \
+        -command {gfc_reset}
 
     proc history_list {{limit 7}} {
         set result {}
@@ -236,6 +242,7 @@ namespace eval ::plugins::${plugin_name} {
     }
 
     proc update_gfc_presets_page_ui {} {
+
         if {$::gfc_flow_cal_showing != $::settings(calibration_flow_multiplier)} {
             dui item config settings_1 GFC_profile_setting -initial_state normal -state normal
         } else {
@@ -257,6 +264,7 @@ namespace eval ::plugins::${plugin_name} {
             espresso_flow append [expr $::gfc_flow_cal_showing * $flow / $::gfc_flow_cal_history]
         }
         ::plugins::Graphical_Flow_Calibrator::update_gfc_presets_page_ui
+        hide_GFC_profile_setting
     }
 
     proc flow_cal_down {} {
@@ -273,6 +281,7 @@ namespace eval ::plugins::${plugin_name} {
             espresso_flow append [expr $::gfc_flow_cal_showing * $flow / $::gfc_flow_cal_history]
         }
         ::plugins::Graphical_Flow_Calibrator::update_gfc_presets_page_ui
+        hide_GFC_profile_setting
     }
 
     proc save_default_flow_cal {} {
@@ -405,6 +414,33 @@ dui add dbutton settings_1 2160 720 -bwidth 120 -bheight 60 \
     -shape round -fill #c0c4e1 -radius 40 \
     -label "GFC" -label_font [dui font get "notosansuiregular" 14] -label_fill #fff -label_pos {0.5 0.5} \
     -command {page_show GFC}
+
+### reset page
+proc ::gfc_reset {} {
+    page_show gfc_reset_page
+}
+
+proc ::confirm_gfc_reset {} {
+    set ::settings(calibration_flow_multiplier_profiles) {}
+    save_settings
+}
+
+dui add canvas_item rect gfc_reset_page 0 0 2560 1600 -fill #fff -width 0
+
+dui add dtext gfc_reset_page 1280 400 -font [dui font get "notosansuibold" 26] -text [translate "Warning!"] -width 1200 -fill #2b6084 -anchor n -justify center
+dui add dtext gfc_reset_page 1280 500 -font [dui font get "notosansuiregular" 18] -text [translate "You are about to delete saved custom flow calibration settings for all profiles, all profiles will revert back to using the apps flow calibration setting"] -width 1200 -fill #2b6084 -anchor n -justify center
+
+dui add dbutton gfc_reset_page 830 900 \
+        -bwidth 300 -bheight 120 \
+        -shape round -fill #DA515E -radius 60\
+        -label [translate "Cancel"] -label_font [dui font get "notosansuibold" 18] -label_fill #fAfBff -label_pos {0.5 0.5} \
+        -command {page_show_orig GFC}
+
+dui add dbutton gfc_reset_page 1380 900 \
+        -bwidth 300 -bheight 120 \
+        -shape round -fill #0CA581 -radius 60\
+        -label [translate "Confirm"] -label_font [dui font get "notosansuibold" 18] -label_fill #fAfBff -label_pos {0.5 0.5} \
+        -command {::confirm_gfc_reset; ::plugins::Graphical_Flow_Calibrator::exit}
 
 rename ::page_show ::page_show_orig
 proc ::page_show {page_to_show args} {
