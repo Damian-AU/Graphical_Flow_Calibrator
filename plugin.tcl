@@ -36,7 +36,7 @@ namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs and per profile calibration"
-    variable version 3.0
+    variable version 3.1
     variable min_de1app_version {1.43.12}
 
     proc main {} {
@@ -449,6 +449,7 @@ proc ::page_show {page_to_show args} {
 	}
 	page_show_orig $page_to_show $args
 	if {$page_to_show == "GFC"} {
+		set ::settings(calibration_flow_multiplier_default) $::settings(calibration_flow_multiplier)
 		::plugins::Graphical_Flow_Calibrator::load_GFC_graph $::gfc_history_file 0
 	}
 }
