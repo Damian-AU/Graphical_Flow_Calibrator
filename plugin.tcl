@@ -174,6 +174,16 @@ namespace eval ::plugins::${plugin_name} {
 
         ::plugins::Graphical_Flow_Calibrator::clear_GFC_graph
         set file_name [::plugins::Graphical_Flow_Calibrator::history_position $p]
+        # On a brand new installation there is no shot history yet, so
+        # history_position returns an empty name. Bail out gracefully instead
+        # of trying to read a non-existent file (which leaves history_data
+        # empty and throws "no such element in array" below).
+        if {$file_name eq ""} {
+            set ::gfc_orig_flow ""
+            set ::gfc_espresso_flow ""
+            espresso_flow length 0
+            return
+        }
         array set history_data [read_file "[homedir]/history/$file_name"]
         foreach lg [::plugins::Graphical_Flow_Calibrator::graph_list] {
             $lg length 0
