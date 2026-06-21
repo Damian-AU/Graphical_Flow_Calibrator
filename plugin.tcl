@@ -36,7 +36,7 @@ namespace eval ::plugins::${plugin_name} {
     variable author "Damian"
     variable contact "via Diaspora"
     variable description "Adjust flow calibration using historic shot graphs and per profile calibration"
-    variable version 3.1
+    variable version 3.2
     variable min_de1app_version {1.43.12}
 
     proc main {} {
